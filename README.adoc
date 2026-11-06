@@ -1,0 +1,6 @@
+= jQAssistant Sonar Report Plugin
+
+**this is a work in progress**
+
+This Plugin  should allow to generate JSON files in the https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/importing-external-issues/generic-issue-import-format[Generic issue import format] which is the native formate to display third party issues on sonarqube/-cloud.
+
