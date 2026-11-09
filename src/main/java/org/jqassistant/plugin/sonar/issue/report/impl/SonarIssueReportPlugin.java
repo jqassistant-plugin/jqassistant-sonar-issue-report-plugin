@@ -16,7 +16,6 @@ import com.buschmais.jqassistant.core.rule.api.model.ExecutableRule;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.asn1.cmp.NestedMessageContent;
 import org.jqassistant.plugin.sonar.issue.report.api.model.Issue;
 import org.jqassistant.plugin.sonar.issue.report.api.model.Location;
 import org.jqassistant.plugin.sonar.issue.report.api.model.Rule;
@@ -51,7 +50,6 @@ public class SonarIssueReportPlugin implements ReportPlugin {
             throw new IllegalStateException("Missing required property 'sonar.default.location' in '.jqassistant.yml'. "
                 + "Please set the property according to the specifications in 'jqassistant-sonar-issue-report-plugin/README.adoc'");
         }
-
     }
 
     @Override
@@ -158,5 +156,4 @@ public class SonarIssueReportPlugin implements ReportPlugin {
             });
         return message.toString();
     }
-
 }
