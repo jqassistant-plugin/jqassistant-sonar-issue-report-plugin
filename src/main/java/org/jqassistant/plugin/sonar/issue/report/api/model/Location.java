@@ -1,23 +1,22 @@
-package org.jqassistant.plugin.giif.report.api.impl.model;
+package org.jqassistant.plugin.sonar.issue.report.api.model;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
-@Builder
-@Getter
 @ToString
-public class PrimaryLocation {
-
+@Getter
+@Builder
+public class Location {
     private String message;
     private String filePath;
-    private TextRange testRange
+    private TextRange textRange;
 
-    @Builder
     @Getter
+    @Builder
     @ToString
     public static class TextRange {
-
         private int startLine;
+        private int endLine;
     }
 }

@@ -1,6 +1,66 @@
-= jQAssistant Sonar Report Plugin
+= jQAssistant Sonar Issue Report Plugin
 
-**this is a work in progress**
+This is the Issue Report Plugin of https://jqassistant.org[jQAssistant^].
 
-This Plugin  should allow to generate JSON files in the https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/importing-external-issues/generic-issue-import-format[Generic issue import format] which is the native formate to display third party issues on sonarqube/-cloud.
+It allows to generate JSON files in the link:++https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/importing-external-issues/generic-issue-import-format[Generic issue import format]++[SARIF format] which can be used to display JQAssistant-Findings on SonarQube and SonarCloud.
 
+For more information on jQAssistant see https://jqassistant.org[^].
+
+== Setup
+
+The plugin must be declared in the jQAssistant configuration:
+
+[source,yaml]
+..jqassistant.yml
+----
+jqassistant:
+  plugins:
+    - group-id: org.jqassistant.plugin
+      artifact-id: jqassistant-sonar-issue-report-plugin
+      version: 1.0.0-SNAPSHOT
+  analyze:
+    report:
+      sonar:
+        default.location: pom.xml #example value for maven based projects
+----
+
+The `default.location` property must be set to ensure that all issues can be displayed. The value of the property must meet the following requirements:
+
+- Path from the source root directory to an existing file that is not expected to be deleted
+- Must not begin with a period
+
+Please note that issues attached to the file specified in the `default.location` property may not be related to that file.
+
+During execution of the `analyze` task or goal a file `jqassistant-sonar-issue-report.json` is created in the report directory.
+
+== Maven
+
+[source,yaml]
+..github/workflows/ci.yml
+----
+name: CI-Workflow
+
+on:
+  workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
+
+jobs:
+  sonarcloud:
+    name: Upload to SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name:
+      - name: Build and Upload to SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \          #use your servers host-url to ulpoad to SonarServer
+            -Dsonar.projectKey=your_project_key \
+            -Dsonar.organization=your_organization \
+            -Dsonar.externalIssuesReportPaths=target/jqassistant/report/sonar-issues/jqassistant-sonar-issue-report.json
+----

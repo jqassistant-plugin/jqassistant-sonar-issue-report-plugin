@@ -1,11 +1,10 @@
-package org.jqassistant.plugin.sarif.report.impl;
+package org.jqassistant.plugin.sonar.issue.report.impl;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 import com.buschmais.jqassistant.core.report.api.ReportContext;
-import com.buschmais.jqassistant.core.report.api.ReportException;
 import com.buschmais.jqassistant.core.report.api.ReportPlugin;
 import com.buschmais.jqassistant.core.report.api.ReportPlugin.Default;
 import com.buschmais.jqassistant.core.report.api.model.Column;
@@ -17,7 +16,11 @@ import com.buschmais.jqassistant.core.rule.api.model.ExecutableRule;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.jqassistant.plugin.giif.report.api.impl.model.*;
+import org.bouncycastle.asn1.cmp.NestedMessageContent;
+import org.jqassistant.plugin.sonar.issue.report.api.model.Issue;
+import org.jqassistant.plugin.sonar.issue.report.api.model.Location;
+import org.jqassistant.plugin.sonar.issue.report.api.model.Rule;
+import org.jqassistant.plugin.sonar.issue.report.api.model.SonarIssueReport;
 import org.mapstruct.factory.Mappers;
 
 import static com.buschmais.jqassistant.core.report.api.model.Result.Status.FAILURE;
@@ -26,28 +29,34 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @Default
 @Slf4j
-public class GiifReportPlugin implements ReportPlugin {
-
-    public static final String REPORT_DIRECTORY = "giif";
-    public static final String REPORT_FILE = "jqassistant-giif-report.json";
+public class SonarIssueReportPlugin implements ReportPlugin {
+    public static final String REPORT_DIRECTORY = "sonar-issues";
+    public static final String REPORT_FILE = "jqassistant-sonar-issue-report.json";
+    private static final String PROPERTY_DEFAULT_LOCATION = "sonar.default.location";
     private static final SeverityMapper SEVERITY_MAPPER = Mappers.getMapper(SeverityMapper.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().setDefaultPropertyInclusion(NON_NULL);
-    private static final PrimaryLocationBuilder DEFAULT_LOCATION = PrimaryLocation.builder.filePath();
 
     private ReportContext reportContext;
-    private List<SarifResult> sarifResults;
+    private String defaultLocation;
     private List<Rule> rules;
+    private List<Issue> issues;
     private Set<String> registeredRuleIds;
+    private String message;
 
     @Override
     public void configure(ReportContext reportContext, Map<String, Object> properties) {
-
         this.reportContext = reportContext;
+        this.defaultLocation = (String) properties.get(PROPERTY_DEFAULT_LOCATION);
+        if (this.defaultLocation == null) {
+            throw new IllegalStateException("Missing required property 'sonar.default.location' in '.jqassistant.yml'. "
+                + "Please set the property according to the specifications in 'jqassistant-sonar-issue-report-plugin/README.adoc'");
+        }
+
     }
 
     @Override
     public void begin() {
-        sarifResults = new LinkedList<>();
+        issues = new ArrayList<>();
         rules = new ArrayList<>();
         registeredRuleIds = new HashSet<>();
     }
@@ -58,64 +67,44 @@ public class GiifReportPlugin implements ReportPlugin {
         if (FAILURE.equals(status) || WARNING.equals(status)) {
             ExecutableRule<?> executableRule = result.getRule();
             Constraint constraint = (Constraint) executableRule;
-            Rule.DefaultConfiguration.DefaultConfigurationBuilder levelBuilder = Rule.DefaultConfiguration.builder();
-            for (Row row : result.getRows()) {
-                if (!row.isHidden()) {
-                    sarifResults.add(getSarifResult(result, constraint, row));
-                    levelBuilder.level(SEVERITY_MAPPER.toReport(row.getStatus()));
-                }
-            }
+
+            Rule.Impact.ImpactBuilder severityBuilder = Rule.Impact.builder();
             if (registeredRuleIds.add(constraint.getId())) {
                 rules.add(Rule.builder()
                     .id(constraint.getId())
-                    .shortDescription(Text.builder()
-                        .text(constraint.getDescription())
-                        .build())
-                    .defaultConfiguration(levelBuilder.build())
+                    .name(constraint.getId())
+                    .description(constraint.getDescription())
+                    .impacts(List.of(severityBuilder.severity(SEVERITY_MAPPER.toReport(result.getSeverity()))
+                        .build()))
                     .build());
+            }
+            for (Row row : result.getRows()) {
+                if (!row.isHidden()) {
+                    this.message = formatColumns(constraint.getDescription(), row);
+                    issues.add(Issue.builder()
+                        .ruleId(constraint.getId())
+                        .primaryLocation(getLocation(result, row))
+                        .build());
+                }
             }
         }
     }
 
     @Override
-    public void end() throws ReportException {
-
+    public void end() throws RuntimeException {
         File reportDirectory = reportContext.getReportDirectory(REPORT_DIRECTORY);
-
-        SarifReport report = SarifReport.builder()
-            .runs(List.of(Run.builder()
-                .tool(Run.Tool.builder()
-                    .driver(Run.Tool.Driver.builder()
-                        .rules(rules)
-                        .build())
-                    .build())
-                .results(this.sarifResults)
-                .build()))
+        SonarIssueReport report = SonarIssueReport.builder()
+            .rules(rules)
+            .issues(issues)
             .build();
         try {
             File file = new File(reportDirectory, REPORT_FILE).getCanonicalFile();
-            log.info("Writing SARIF report to {}.", file);
+            log.info("Writing SonarIssue report to {}.", file);
             OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
                 .writeValue(file, report);
         } catch (IOException e) {
-            throw new ReportException("Failed to write SARIF report file.", e);
+            throw new RuntimeException("Failed to write SonarIssue report file.", e);
         }
-    }
-
-    private SarifResult getSarifResult(Result<? extends ExecutableRule> result, Constraint constraint, Row row) {
-        SarifResult.SarifResultBuilder resultBuilder = SarifResult.builder()
-            .properties(SarifResult.SarifProperties.builder()
-                .checkName("[jQAssistant]" + constraint.getId())
-                .build())
-            .ruleId(constraint.getId());
-
-        String text = formatColumns(constraint.getDescription(), row);
-
-        resultBuilder.message(Text.builder()
-            .text(text)
-            .build());
-        resultBuilder.location(getLocation(result, row));
-        return resultBuilder.build();
     }
 
     private Location getLocation(Result<? extends ExecutableRule> result, Row row) {
@@ -126,23 +115,28 @@ public class GiifReportPlugin implements ReportPlugin {
             .filter(location -> location instanceof FileLocation)
             .map(location -> (FileLocation) location)
             .filter(location -> location.getPath() != null)
-            .map(SarifReportPlugin::getLocation)
-            .orElse(DEFAULT_LOCATION);
+            .map(this::getFileLocation)
+            .orElse(Location.builder()
+                .message(message)
+                .filePath(defaultLocation)
+                .textRange(Location.TextRange.builder()
+                    .startLine(1)
+                    .endLine(1)
+                    .build())
+                .build());
     }
 
-    private static Location getLocation(FileLocation location) {
-        Location.LocationBuilder locationBuilder = Location.builder();
-        Location.PhysicalLocation.PhysicalLocationBuilder physicalLocationBuilder = Location.PhysicalLocation.builder();
-        physicalLocationBuilder.artifactLocation(Location.PhysicalLocation.ArtifactLocation.builder()
-            .uri(location.getPath())
-            .build());
-        Location.PhysicalLocation.Region.RegionBuilder regionBuilder = Location.PhysicalLocation.Region.builder()
+    private Location getFileLocation(FileLocation location) {
+        Location.LocationBuilder locationBuilder = Location.builder()
+            .filePath(location.getPath())
+            .message(message);
+        Location.TextRange textRange = Location.TextRange.builder()
             .startLine(location.getStartLine()
                 .orElse(1))
             .endLine(location.getEndLine()
-                .orElse(1));
-        physicalLocationBuilder.region(regionBuilder.build());
-        return locationBuilder.physicalLocation(physicalLocationBuilder.build())
+                .orElse(1))
+            .build();
+        return locationBuilder.textRange(textRange)
             .build();
     }
 
