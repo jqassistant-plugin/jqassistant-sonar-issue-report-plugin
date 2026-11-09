@@ -16,7 +16,6 @@ import com.buschmais.jqassistant.core.rule.api.model.ExecutableRule;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.asn1.cmp.NestedMessageContent;
 import org.jqassistant.plugin.sonar.issue.report.api.model.Issue;
 import org.jqassistant.plugin.sonar.issue.report.api.model.Location;
 import org.jqassistant.plugin.sonar.issue.report.api.model.Rule;
