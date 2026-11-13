@@ -19,7 +19,7 @@
       "ruleId": "sonar-issue-report-it:ConstraintWithoutLocation",
       "primaryLocation": {
         "message": "A failing constraint without location. | Failure: This is a failure ",
-        "filePath": ".jqassistant.yml",
+        "filePath": "pom.xml",
         "textRange": {
           "startLine": 1,
           "endLine": 1

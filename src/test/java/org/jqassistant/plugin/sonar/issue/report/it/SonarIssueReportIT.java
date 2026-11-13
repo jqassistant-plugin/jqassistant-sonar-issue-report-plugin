@@ -34,6 +34,11 @@ public class SonarIssueReportIT {
     @Nested
     public class DefaultContentIT extends AbstractNestedSonarIssueReportIT {
 
+        @Override
+        protected Map<String, Object> getReportProperties() {
+            return Map.of("sonar.default.location", "pom.xml");
+        }
+
         @Test
         void verifyDefaultContentOnWarning() throws RuleException, IOException {
             scanSourcesAndClasspathDirectory();
@@ -54,6 +59,11 @@ public class SonarIssueReportIT {
 
     @Nested
     public class ConstraintWithoutLocation extends AbstractNestedSonarIssueReportIT {
+
+        @Override
+        protected Map<String, Object> getReportProperties() {
+            return Map.of("sonar.default.location", "pom.xml");
+        }
 
         @Test
         void verifyConstraintWithoutLocation() throws RuleException, IOException {
