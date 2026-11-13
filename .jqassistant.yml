@@ -1,0 +1,10 @@
+# Example of how to integrate the plugin:
+jqassistant:
+  plugins:
+    - group-id: org.jqassistant.plugin
+      artifact-id: jqassistant-sonar-issue-report-plugin
+      version: 1.0.0-M1
+  analyze:
+    report:
+      properties:
+        sonar.issue.report.default-location: pom.xml
