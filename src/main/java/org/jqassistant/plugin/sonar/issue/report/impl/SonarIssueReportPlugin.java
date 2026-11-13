@@ -2,9 +2,12 @@ package org.jqassistant.plugin.sonar.issue.report.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import com.buschmais.jqassistant.core.report.api.ReportContext;
+import com.buschmais.jqassistant.core.report.api.ReportException;
 import com.buschmais.jqassistant.core.report.api.ReportPlugin;
 import com.buschmais.jqassistant.core.report.api.ReportPlugin.Default;
 import com.buschmais.jqassistant.core.report.api.model.Column;
@@ -31,7 +34,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 public class SonarIssueReportPlugin implements ReportPlugin {
     public static final String REPORT_DIRECTORY = "sonar-issues";
     public static final String REPORT_FILE = "jqassistant-sonar-issue-report.json";
-    private static final String PROPERTY_DEFAULT_LOCATION = "sonar.default.location";
+    private static final String PROPERTY_DEFAULT_LOCATION = "sonar.issue.report.default-location";
     private static final SeverityMapper SEVERITY_MAPPER = Mappers.getMapper(SeverityMapper.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().setDefaultPropertyInclusion(NON_NULL);
 
@@ -47,8 +50,13 @@ public class SonarIssueReportPlugin implements ReportPlugin {
         this.reportContext = reportContext;
         this.defaultLocation = (String) properties.get(PROPERTY_DEFAULT_LOCATION);
         if (this.defaultLocation == null) {
-            throw new IllegalStateException("Missing required property 'sonar.default.location' in '.jqassistant.yml'. "
+            throw new IllegalStateException("Missing required property '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml'. "
                 + "Please set the property according to the specifications in 'jqassistant-sonar-issue-report-plugin/README.adoc'");
+        } else if (!Files.exists(Path.of(defaultLocation))) {
+            throw new IllegalStateException("File not found. The value of '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml' is not valid.");
+        } else if (defaultLocation.startsWith(".")) {
+            throw new IllegalStateException(
+                "Filepath must not start with a period. The value of '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml' is not valid.");
         }
 
     }
@@ -90,7 +98,7 @@ public class SonarIssueReportPlugin implements ReportPlugin {
     }
 
     @Override
-    public void end() throws RuntimeException {
+    public void end() throws ReportException {
         File reportDirectory = reportContext.getReportDirectory(REPORT_DIRECTORY);
         SonarIssueReport report = SonarIssueReport.builder()
             .rules(rules)
@@ -102,7 +110,7 @@ public class SonarIssueReportPlugin implements ReportPlugin {
             OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
                 .writeValue(file, report);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to write SonarIssue report file.", e);
+            throw new ReportException("Failed to write SonarIssue report file.", e);
         }
     }
 

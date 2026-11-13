@@ -36,7 +36,7 @@ public class SonarIssueReportIT {
 
         @Override
         protected Map<String, Object> getReportProperties() {
-            return Map.of("sonar.default.location", "pom.xml");
+            return Map.of("sonar.issue.report.default-location", "pom.xml");
         }
 
         @Test
@@ -62,7 +62,7 @@ public class SonarIssueReportIT {
 
         @Override
         protected Map<String, Object> getReportProperties() {
-            return Map.of("sonar.default.location", "pom.xml");
+            return Map.of("sonar.issue.report.default-location", "pom.xml");
         }
 
         @Test
