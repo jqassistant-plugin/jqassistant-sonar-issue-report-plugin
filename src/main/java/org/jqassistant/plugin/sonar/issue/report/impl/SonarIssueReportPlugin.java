@@ -58,7 +58,6 @@ public class SonarIssueReportPlugin implements ReportPlugin {
             throw new IllegalStateException(
                 "Filepath must not start with a period. The value of '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml' is not valid.");
         }
-
     }
 
     @Override
@@ -165,5 +164,4 @@ public class SonarIssueReportPlugin implements ReportPlugin {
             });
         return message.toString();
     }
-
 }
