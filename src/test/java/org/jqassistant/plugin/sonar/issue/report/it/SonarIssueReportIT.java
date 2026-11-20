@@ -67,6 +67,8 @@ public class SonarIssueReportIT {
 
         @Test
         void verifyConstraintWithoutLocation() throws RuleException, IOException {
+            scanSourcesAndClasspathDirectory();
+
             Result<Constraint> result = validateConstraint("sonar-issue-report-it:ConstraintWithoutLocation");
 
             verify("ConstraintWithoutLocation", FAILURE, result);
