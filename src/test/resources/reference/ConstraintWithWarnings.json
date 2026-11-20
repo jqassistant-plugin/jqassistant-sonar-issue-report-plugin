@@ -1,0 +1,41 @@
+{
+  "rules": [
+    {
+      "id": "sonar-issue-report-it:ConstraintWithWarnings",
+      "name": "sonar-issue-report-it:ConstraintWithWarnings",
+      "description": "A failing constraint",
+      "engineId": "jQAssistant",
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "ruleId": "sonar-issue-report-it:ConstraintWithWarnings",
+      "primaryLocation": {
+        "message": "A failing constraint | Type: org.jqassistant.plugin.sonar.issue.report.it.TypeWithIssues | Member: java.lang.String issueField ",
+        "filePath": "src/test/java/org/jqassistant/plugin/sonar/issue/report/it/TypeWithIssues.java",
+        "textRange": {
+          "startLine": 1,
+          "endLine": 1
+        }
+      }
+    },
+    {
+      "ruleId": "sonar-issue-report-it:ConstraintWithWarnings",
+      "primaryLocation": {
+        "message": "A failing constraint | Type: org.jqassistant.plugin.sonar.issue.report.it.TypeWithIssues | Member: void issueMethod() ",
+        "filePath": "src/test/java/org/jqassistant/plugin/sonar/issue/report/it/TypeWithIssues.java",
+        "textRange": {
+          "startLine": 10,
+          "endLine": 11
+        }
+      }
+    }
+  ]
+}
