@@ -51,7 +51,7 @@ public class SonarIssueReportPlugin implements ReportPlugin {
         this.reportContext = reportContext;
         this.defaultLocation = (String) properties.get(PROPERTY_DEFAULT_LOCATION);
         if (this.defaultLocation == null) {
-            throw new IllegalStateException("Missing required property '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml'. "
+            throw new ReportException("Missing required property '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml'. "
                 + "Please set the property according to the specifications in 'jqassistant-sonar-issue-report-plugin/README.adoc'");
         } else if (!Files.exists(Path.of(defaultLocation))) {
             throw new ReportException("File not found. The value of '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml' is not valid.");
