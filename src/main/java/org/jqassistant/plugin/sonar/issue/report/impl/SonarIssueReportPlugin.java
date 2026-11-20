@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import com.buschmais.jqassistant.core.report.api.ReportContext;
 import com.buschmais.jqassistant.core.report.api.ReportException;
@@ -39,23 +41,22 @@ public class SonarIssueReportPlugin implements ReportPlugin {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().setDefaultPropertyInclusion(NON_NULL);
 
     private ReportContext reportContext;
-    private String defaultLocation;
     private List<Rule> rules;
     private List<Issue> issues;
-    private Set<String> registeredRuleIds;
+    private String defaultLocation;
     private String message;
 
     @Override
-    public void configure(ReportContext reportContext, Map<String, Object> properties) {
+    public void configure(ReportContext reportContext, Map<String, Object> properties) throws ReportException {
         this.reportContext = reportContext;
         this.defaultLocation = (String) properties.get(PROPERTY_DEFAULT_LOCATION);
         if (this.defaultLocation == null) {
             throw new IllegalStateException("Missing required property '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml'. "
                 + "Please set the property according to the specifications in 'jqassistant-sonar-issue-report-plugin/README.adoc'");
         } else if (!Files.exists(Path.of(defaultLocation))) {
-            throw new IllegalStateException("File not found. The value of '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml' is not valid.");
+            throw new ReportException("File not found. The value of '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml' is not valid.");
         } else if (defaultLocation.startsWith(".")) {
-            throw new IllegalStateException(
+            throw new ReportException(
                 "Filepath must not start with a period. The value of '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml' is not valid.");
         }
     }
@@ -64,7 +65,6 @@ public class SonarIssueReportPlugin implements ReportPlugin {
     public void begin() {
         issues = new ArrayList<>();
         rules = new ArrayList<>();
-        registeredRuleIds = new HashSet<>();
     }
 
     @Override
@@ -75,15 +75,14 @@ public class SonarIssueReportPlugin implements ReportPlugin {
             Constraint constraint = (Constraint) executableRule;
 
             Rule.Impact.ImpactBuilder severityBuilder = Rule.Impact.builder();
-            if (registeredRuleIds.add(constraint.getId())) {
-                rules.add(Rule.builder()
-                    .id(constraint.getId())
-                    .name(constraint.getId())
-                    .description(constraint.getDescription())
-                    .impacts(List.of(severityBuilder.severity(SEVERITY_MAPPER.toReport(result.getSeverity()))
-                        .build()))
-                    .build());
-            }
+            rules.add(Rule.builder()
+                .id(constraint.getId())
+                .name(constraint.getId())
+                .description(constraint.getDescription())
+                .impacts(List.of(severityBuilder.severity(SEVERITY_MAPPER.toReport(result.getSeverity()))
+                    .build()))
+                .build());
+
             for (Row row : result.getRows()) {
                 if (!row.isHidden()) {
                     this.message = formatColumns(constraint.getDescription(), row);
@@ -154,13 +153,11 @@ public class SonarIssueReportPlugin implements ReportPlugin {
         }
         row.getColumns()
             .forEach((key, value) -> {
-                if (!"location".equalsIgnoreCase(key)) {
-                    message.append("| ")
-                        .append(key)
-                        .append(": ")
-                        .append(value.getLabel())
-                        .append(" ");
-                }
+                message.append("| ")
+                    .append(key)
+                    .append(": ")
+                    .append(value.getLabel())
+                    .append(" ");
             });
         return message.toString();
     }
