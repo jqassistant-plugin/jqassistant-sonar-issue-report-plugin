@@ -70,8 +70,8 @@ public class SonarIssueReportPlugin implements ReportPlugin {
     @Override
     public void setResult(Result<? extends ExecutableRule> result) {
         Result.Status status = result.getStatus();
-        if (FAILURE.equals(status) || WARNING.equals(status)) {
-            ExecutableRule<?> executableRule = result.getRule();
+        ExecutableRule<?> executableRule = result.getRule();
+        if (executableRule instanceof Constraint && FAILURE.equals(status) || WARNING.equals(status)) {
             Constraint constraint = (Constraint) executableRule;
 
             Rule.Impact.ImpactBuilder severityBuilder = Rule.Impact.builder();
