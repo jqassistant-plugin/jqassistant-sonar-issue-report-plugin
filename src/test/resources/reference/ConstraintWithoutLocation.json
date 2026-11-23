@@ -1,0 +1,30 @@
+{
+  "rules": [
+    {
+      "id": "sonar-issue-report-it:ConstraintWithoutLocation",
+      "name": "sonar-issue-report-it:ConstraintWithoutLocation",
+      "description": "A failing constraint without location.",
+      "engineId": "jQAssistant",
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "ruleId": "sonar-issue-report-it:ConstraintWithoutLocation",
+      "primaryLocation": {
+        "message": "A failing constraint without location. | Failure: This is a failure ",
+        "filePath": "pom.xml",
+        "textRange": {
+          "startLine": 1,
+          "endLine": 1
+        }
+      }
+    }
+  ]
+}
