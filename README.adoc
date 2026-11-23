@@ -35,6 +35,8 @@ During execution of the `analyze` task or goal a file `jqassistant-sonar-issue-r
 
 == Maven
 
+For uploading to SonarQube server instead of SonarCloud, replace `https://sonarcloud.io` with your own host.url in the following set-up
+
 [source,yaml]
 ..github/workflows/ci.yml
 ----
@@ -59,8 +61,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.host.url=https://sonarcloud.io \          #use your servers host-url to ulpoad to SonarServer
+            -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.projectKey=your_project_key \
             -Dsonar.organization=your_organization \
-            -Dsonar.externalIssuesReportPaths=target/jqassistant/report/sonar-issues/jqassistant-sonar-issue-report.json
+            -Dsonar.externalIssuesReportPaths=target/jqassistant/report/sonar-issue/jqassistant-sonar-issue-report.json
 ----
