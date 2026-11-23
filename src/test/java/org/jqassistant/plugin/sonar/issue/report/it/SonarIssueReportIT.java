@@ -11,6 +11,7 @@ import com.buschmais.jqassistant.core.rule.api.model.RuleException;
 import com.buschmais.jqassistant.plugin.java.test.AbstractJavaPluginIT;
 
 import org.apache.commons.io.IOUtils;
+import org.jqassistant.plugin.sonar.issue.report.impl.SonarIssueReportPlugin;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,7 @@ public class SonarIssueReportIT {
 
         @Override
         protected Map<String, Object> getReportProperties() {
-            return Map.of("sonar.issue.report.default-location", "pom.xml");
+            return Map.of(SonarIssueReportPlugin.PROPERTY_DEFAULT_LOCATION, "pom.xml");
         }
 
         @Test
@@ -62,7 +63,7 @@ public class SonarIssueReportIT {
 
         @Override
         protected Map<String, Object> getReportProperties() {
-            return Map.of("sonar.issue.report.default-location", "pom.xml");
+            return Map.of(SonarIssueReportPlugin.PROPERTY_DEFAULT_LOCATION, "pom.xml");
         }
 
         @Test
@@ -77,7 +78,7 @@ public class SonarIssueReportIT {
 
     private void verify(String constraintId, Result.Status expectedStatus, Result<Constraint> result) throws IOException {
         assertThat(result.getStatus()).isEqualTo(expectedStatus);
-        File sarifReport = new File("target/jqassistant/report/sonar-issues/jqassistant-sonar-issue-report.json");
+        File sarifReport = new File("target/jqassistant/report/sonar-issue/jqassistant-sonar-issue-report.json");
         assertThat(sarifReport).exists();
         String expectedJson = IOUtils.toString(Objects.requireNonNull(SonarIssueReportIT.class.getResourceAsStream("/reference/" + constraintId + ".json")),
             UTF_8);

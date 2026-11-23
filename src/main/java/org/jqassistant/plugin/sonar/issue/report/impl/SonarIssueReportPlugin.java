@@ -34,9 +34,9 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Default
 @Slf4j
 public class SonarIssueReportPlugin implements ReportPlugin {
-    public static final String REPORT_DIRECTORY = "sonar-issues";
+    public static final String REPORT_DIRECTORY = "sonar-issue";
     public static final String REPORT_FILE = "jqassistant-sonar-issue-report.json";
-    private static final String PROPERTY_DEFAULT_LOCATION = "sonar.issue.report.default-location";
+    public static final String PROPERTY_DEFAULT_LOCATION = "sonar.issue.report.default-location";
     private static final SeverityMapper SEVERITY_MAPPER = Mappers.getMapper(SeverityMapper.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().setDefaultPropertyInclusion(NON_NULL);
 
@@ -51,13 +51,13 @@ public class SonarIssueReportPlugin implements ReportPlugin {
         this.reportContext = reportContext;
         this.defaultLocation = (String) properties.get(PROPERTY_DEFAULT_LOCATION);
         if (this.defaultLocation == null) {
-            throw new ReportException("Missing required property '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml'. "
+            throw new ReportException("Missing required property '" + PROPERTY_DEFAULT_LOCATION + "'. "
                 + "Please set the property according to the specifications in 'jqassistant-sonar-issue-report-plugin/README.adoc'");
         } else if (!Files.exists(Path.of(defaultLocation))) {
-            throw new ReportException("File not found. The value of '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml' is not valid.");
+            throw new ReportException("File not found. The value '" + defaultLocation + "' of property '" + PROPERTY_DEFAULT_LOCATION + "' is not valid.");
         } else if (defaultLocation.startsWith(".")) {
             throw new ReportException(
-                "Filepath must not start with a period. The value of '" + PROPERTY_DEFAULT_LOCATION + "' in '.jqassistant.yml' is not valid.");
+                "Filepath must not start with a period. The value '" + defaultLocation + "' of property '" + PROPERTY_DEFAULT_LOCATION + "' is not valid.");
         }
     }
 
@@ -71,7 +71,7 @@ public class SonarIssueReportPlugin implements ReportPlugin {
     public void setResult(Result<? extends ExecutableRule> result) {
         Result.Status status = result.getStatus();
         ExecutableRule<?> executableRule = result.getRule();
-        if (executableRule instanceof Constraint && FAILURE.equals(status) || WARNING.equals(status)) {
+        if (executableRule instanceof Constraint && (FAILURE.equals(status) || WARNING.equals(status))) {
             Constraint constraint = (Constraint) executableRule;
 
             Rule.Impact.ImpactBuilder severityBuilder = Rule.Impact.builder();
