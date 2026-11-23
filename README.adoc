@@ -45,7 +45,7 @@ name: CI-Workflow
 on:
   workflow_call:
     secrets:
-      SONAR_TOKEN:
+      sonar_token:
         required: true
 
 jobs:
@@ -57,12 +57,12 @@ jobs:
         uses: actions/checkout@v4
       - name:
       - name: Build and Upload to SonarCloud
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.projectKey=your_project_key \
             -Dsonar.organization=your_organization \
             -Dsonar.externalIssuesReportPaths=target/jqassistant/report/sonar-issue/jqassistant-sonar-issue-report.json
+        env:
+          SONAR_TOKEN: ${{ secrets.sonar_token }}
 ----
